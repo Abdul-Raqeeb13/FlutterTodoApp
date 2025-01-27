@@ -25,7 +25,10 @@ class _ToadoAppState extends State<ToadoApp> {
       var filterdata = [];
       todoData.forEach((element) {
         originalData.add(element);
-        if (element['todo'].toString().toLowerCase().contains(searchTodo.text.toLowerCase())) {
+        if (element['todo']
+            .toString()
+            .toLowerCase()
+            .contains(searchTodo.text.toLowerCase())) {
           filterdata.add(element);
         }
       });
@@ -40,6 +43,15 @@ class _ToadoAppState extends State<ToadoApp> {
     }
   }
 
+  void deleteSearchDataFromOriginalData(deleteText){
+    // print(originalData);
+   originalData.removeWhere((element) => element['todo'] == deleteText);
+
+    setState(() {
+      todoData = List.from(originalData);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -47,27 +59,24 @@ class _ToadoAppState extends State<ToadoApp> {
         appBar: AppBar(
           backgroundColor: Color.fromARGB(255, 17, 199, 206),
           title: Text("Todo App",
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           centerTitle: true,
         ),
-        
         backgroundColor: Colors.black,
         body: Padding(
-          
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
               Row(
                 children: [
                   Container(
-
                     margin: EdgeInsets.only(top: 13, bottom: 8, left: 5),
                     width: MediaQuery.of(context).size.width * 0.73,
                     child: TextFormField(
                       controller: newTodo,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        enabled: searching ? false : true,
                         labelText: 'Enter your todos',
                         labelStyle: TextStyle(color: Colors.white),
                         hintText: 'eg: I work hard daily',
@@ -75,13 +84,11 @@ class _ToadoAppState extends State<ToadoApp> {
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: Colors.blue),
+                          borderSide: BorderSide(color: Colors.blue),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -105,12 +112,20 @@ class _ToadoAppState extends State<ToadoApp> {
                             edit = false;
                             editIndex = null;
                           } else {
-                            todoData.insert(0, {
-                              'todo': newTodo.text,
-                              'time': DateTime.now()
-                            });
+                            if (searching) {
+                              todoData.insert(0, {
+                                'todo': newTodo.text,
+                                'time': DateTime.now()
+                              });
+                              todoData = List.from(originalData);
+                              searching = false;
+                              originalData = [];
+                            }
+                            todoData.insert(0,
+                                {'todo': newTodo.text, 'time': DateTime.now()});
                             if (listcontroller.hasClients) {
-                              var position = listcontroller.position.minScrollExtent;
+                              var position =
+                                  listcontroller.position.minScrollExtent;
                               listcontroller.animateTo(position,
                                   duration: Duration(microseconds: 1000),
                                   curve: Curves.easeInOutBack);
@@ -130,7 +145,8 @@ class _ToadoAppState extends State<ToadoApp> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color.fromARGB(255, 17, 199, 206),
                       elevation: 5,
-                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 11),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 0, vertical: 11),
                       foregroundColor: Colors.black,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50),
@@ -157,13 +173,11 @@ class _ToadoAppState extends State<ToadoApp> {
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                         border: OutlineInputBorder(
-                          borderRadius:
-                              BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: Colors.blue),
+                          borderSide: BorderSide(color: Colors.blue),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -191,7 +205,8 @@ class _ToadoAppState extends State<ToadoApp> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color.fromARGB(255, 17, 199, 206),
                       elevation: 5,
-                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 11),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 0, vertical: 11),
                       foregroundColor: Colors.black,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50),
@@ -223,7 +238,8 @@ class _ToadoAppState extends State<ToadoApp> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             CircleAvatar(
-                              backgroundColor: Color.fromARGB(51, 158, 158, 158),
+                              backgroundColor:
+                                  Color.fromARGB(51, 158, 158, 158),
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -240,18 +256,33 @@ class _ToadoAppState extends State<ToadoApp> {
                             ),
                             SizedBox(width: 10),
                             CircleAvatar(
-                              backgroundColor: Color.fromARGB(51, 158, 158, 158),
+                              backgroundColor:
+                                  Color.fromARGB(51, 158, 158, 158),
                               child: GestureDetector(
                                 onTap: () {
+                                  if (searching) {
+                                    var deleteSearchData = todoData[index]['todo'];
+                                    // print(deleteSearchData);
+                                    deleteSearchDataFromOriginalData(deleteSearchData);
+                                    
+                                    setState(() {
+                                      
+                                    todoData.removeAt(index);
+                                    });
+                                  }
+                                  else{
                                   if (editIndex != index) {
                                     setState(() {
                                       todoData.removeAt(index);
                                     });
                                   }
+                                  }
                                 },
                                 child: Icon(
                                   Icons.delete,
-                                  color: (editIndex == index) ? Colors.grey : Colors.red,
+                                  color: (editIndex == index)
+                                      ? Colors.grey
+                                      : Colors.red,
                                 ),
                               ),
                             ),
