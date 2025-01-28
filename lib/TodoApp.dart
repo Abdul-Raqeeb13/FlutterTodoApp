@@ -18,6 +18,8 @@ class _ToadoAppState extends State<ToadoApp> {
   bool searching = false;
   int? editIndex; // Make sure editIndex is nullable
   List originalData = [];
+  var previousTodoText;
+  var count;
 
   void searchTodoData() {
     if (searchTodo.text.toString().trim().toLowerCase().isNotEmpty) {
@@ -43,13 +45,53 @@ class _ToadoAppState extends State<ToadoApp> {
     }
   }
 
-  void deleteSearchDataFromOriginalData(deleteText){
+  void deleteSearchDataFromOriginalData(deleteText) {
     // print(originalData);
-   originalData.removeWhere((element) => element['todo'] == deleteText);
+    originalData.removeWhere((element) => element['todo'] == deleteText);
+  }
 
-    setState(() {
-      todoData = List.from(originalData);
+  void editSearchDataFromOriginalData(String previousText, String newEditText) {
+    // Find the index of the previous text
+    var result =
+        originalData.indexWhere((element) => element['todo'] == previousText);
+
+    // Check if the previous text exists
+    if (result != -1) {
+      // Update the value at the found index
+      setState(() {
+        originalData[result]['todo'] = newEditText;
+        // todoData = List.from(originalData);
+      });
+      print('Updated originalData: $originalData');
+    } else {
+      print('Item not found');
+    }
+  }
+
+  void addNewTodo(todotext) {
+    todoData.forEach((element) {
+      if (element['todo'].toString().toLowerCase().trim() ==
+          todotext.toString().toLowerCase().trim()) {
+        count = 1;
+      }
     });
+
+    if (count == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("This one is already added"),
+          backgroundColor: Color.fromARGB(255, 195, 12, 12),
+        ),
+      );
+      setState(() {
+        count = 0;
+      });
+    } else {
+      setState(() {
+        todoData.insert(0, {'todo': newTodo.text, 'time': DateTime.now()});
+        count = 0;
+      });
+    }
   }
 
   @override
@@ -105,24 +147,36 @@ class _ToadoAppState extends State<ToadoApp> {
                       if (newTodo.text.toString().trim().isNotEmpty) {
                         setState(() {
                           if (edit) {
-                            todoData[editIndex!] = {
-                              'todo': newTodo.text,
-                              'time': DateTime.now()
-                            };
-                            edit = false;
-                            editIndex = null;
-                          } else {
                             if (searching) {
-                              todoData.insert(0, {
+                              print('ye searching edit');
+                              editSearchDataFromOriginalData(
+                                  previousTodoText, newTodo.text);
+                              edit = false;
+                              editIndex = null;
+                              // searching = false;
+                              // searchTodo.clear();
+                            } else {
+                              todoData[editIndex!] = {
                                 'todo': newTodo.text,
                                 'time': DateTime.now()
-                              });
-                              todoData = List.from(originalData);
+                              };
+                              edit = false;
+                              editIndex = null;
                               searching = false;
-                              originalData = [];
+                              searchTodo.clear();
                             }
-                            todoData.insert(0,
-                                {'todo': newTodo.text, 'time': DateTime.now()});
+                          } else {
+                            if (searching) {
+                              todoData = List.from(originalData);
+                              addNewTodo(newTodo.text);
+                              searching = false;
+                              searchTodo.clear();
+                              originalData = [];
+                            } else {
+                              print('newtodo');
+                              addNewTodo(newTodo.text);
+                            }
+
                             if (listcontroller.hasClients) {
                               var position =
                                   listcontroller.position.minScrollExtent;
@@ -261,21 +315,21 @@ class _ToadoAppState extends State<ToadoApp> {
                               child: GestureDetector(
                                 onTap: () {
                                   if (searching) {
-                                    var deleteSearchData = todoData[index]['todo'];
+                                    var deleteSearchData =
+                                        todoData[index]['todo'];
                                     // print(deleteSearchData);
-                                    deleteSearchDataFromOriginalData(deleteSearchData);
-                                    
-                                    setState(() {
-                                      
-                                    todoData.removeAt(index);
-                                    });
-                                  }
-                                  else{
-                                  if (editIndex != index) {
+                                    deleteSearchDataFromOriginalData(
+                                        deleteSearchData);
+
                                     setState(() {
                                       todoData.removeAt(index);
                                     });
-                                  }
+                                  } else {
+                                    if (editIndex != index) {
+                                      setState(() {
+                                        todoData.removeAt(index);
+                                      });
+                                    }
                                   }
                                 },
                                 child: Icon(
@@ -301,6 +355,7 @@ class _ToadoAppState extends State<ToadoApp> {
   }
 
   void _editTodo(String todoText) {
+    previousTodoText = todoText;
     newTodo.text = todoText;
   }
 }
