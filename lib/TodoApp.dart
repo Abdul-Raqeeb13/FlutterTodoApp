@@ -54,7 +54,9 @@ class _ToadoAppState extends State<ToadoApp> {
     // Find the index of the previous text
     var result =
         originalData.indexWhere((element) => element['todo'] == previousText);
-
+      print(originalData);
+      print(previousText);
+      print(result);
     // Check if the previous text exists
     if (result != -1) {
       // Update the value at the found index
@@ -151,6 +153,10 @@ class _ToadoAppState extends State<ToadoApp> {
                               print('ye searching edit');
                               editSearchDataFromOriginalData(
                                   previousTodoText, newTodo.text);
+                              todoData[editIndex!] = {
+                                'todo': newTodo.text,
+                                'time': DateTime.now()
+                              };
                               edit = false;
                               editIndex = null;
                               // searching = false;
@@ -247,7 +253,7 @@ class _ToadoAppState extends State<ToadoApp> {
                     onPressed: () {
                       if (searching) {
                         searchTodo.clear();
-                        todoData = List.from(originalData);
+                        todoData = originalData;
                         originalData = [];
                         searching = false;
                         setState(() {});
@@ -321,9 +327,11 @@ class _ToadoAppState extends State<ToadoApp> {
                                     deleteSearchDataFromOriginalData(
                                         deleteSearchData);
 
-                                    setState(() {
-                                      todoData.removeAt(index);
-                                    });
+                                    if (editIndex != index) {
+                                      setState(() {
+                                        todoData.removeAt(index);
+                                      });
+                                    }
                                   } else {
                                     if (editIndex != index) {
                                       setState(() {
